@@ -5,6 +5,7 @@ packer/http/user-data
 
 
 # Terraform state files
+*.tfstate.*
 *.tfstate
 *.tfstate.backup
 
