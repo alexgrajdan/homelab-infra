@@ -15,11 +15,11 @@ resource "proxmox_vm_qemu" "k3s_master" {
   boot   = "order=scsi0;net0"
 
   cpu {
-    cores   = 2
+    cores   = 4
     type    = "x86-64-v2-AES"
     sockets = 1
   }
-  memory = 2048
+  memory = 4096
 
   network {
     id     = 0
@@ -76,11 +76,11 @@ resource "proxmox_vm_qemu" "k3s_worker" {
   boot   = "order=scsi0;net0"
 
   cpu {
-    cores   = 2
+    cores   = 4
     type    = "x86-64-v2-AES"
     sockets = 1
   }
-  memory = 2048
+  memory = 4096
 
   network {
     id     = 0
