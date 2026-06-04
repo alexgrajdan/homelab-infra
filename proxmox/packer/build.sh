@@ -1,24 +1,43 @@
 #!/bin/bash
 # Navigate to the directory containing this script
 cd "$(dirname "$0")"
-# Check if Packer is installed
-if ! command -v packer &> /dev/null; then
-    echo "Packer is not installed. Please install it from https://www.packer.io/downloads"
-    exit 1
+
+# 1. Check for requirements
+if ! command -v sops &> /dev/null; then 
+    echo "Error: SOPS not found"; 
+    exit 1; 
 fi
-# Check if secrets file exists
-if [ ! -f "secrets.pkrvars.hcl" ]; then
-    echo "Creating example secrets file..."
-    cp secrets.pkrvars.hcl.example secrets.pkrvars.hcl
-    echo "Please edit secrets.pkrvars.hcl with your actual credentials before running this script again."
-    exit 1
+
+if ! command -v packer &> /dev/null; then 
+    echo "Error: Packer is not installed. Please install it from https://www.packer.io/downloads"; 
+    exit 1; 
 fi
-# Initialize Packer plugins
+
+if [ ! -f "secrets.enc.json" ]; then 
+    echo "Error: secrets.enc.json not found"; 
+    exit 1; 
+fi
+
+# 2. Define a temporary filename for the decrypted secrets
+# We use a .json extension so Packer is happy
+TEMP_SECRETS="tmp_secrets.json"
+
+# 3. SET A TRAP: This ensures the file is deleted when the script exits
+# (Whether it finishes successfully or crashes)
+trap 'rm -f "$TEMP_SECRETS"; echo "Cleanup: Temporary secrets deleted."' EXIT
+
+# 4. Decrypt the secrets to the temporary file
+echo "Decrypting secrets..."
+sops -d secrets.enc.json > "$TEMP_SECRETS"
+
+# 5. Initialize Packer
 echo "Initializing Packer plugins..."
-packer init ubuntu-2404.pkr.hcl
-# Run Packer build with both variable files
+packer init .
+
+# 6. Run Packer build using the temporary file
 echo "Starting Packer build..."
 packer build -force -on-error=ask \
-  -var-file=secrets.pkrvars.hcl \
-  ubuntu-2404.pkr.hcl
+    -var-file="$TEMP_SECRETS" \
+    .
+
 echo "Build process completed!"
