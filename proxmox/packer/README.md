@@ -1,55 +1,82 @@
 # Proxmox Ubuntu 24.04 Packer Templates
 
-This directory contains Packer templates and scripts for building Ubuntu 24.04 VM templates on Proxmox.
+This repository contains modular Packer templates for building Ubuntu 24.04 VM templates on Proxmox, featuring **SOPS + age** for secure secrets management.
 
-## Prerequisites
+## 🛠 Prerequisites
 
-- [Packer](https://www.packer.io/) installed
-- Access to your Proxmox server and API credentials
-- Ubuntu 24.04 ISO downloaded
+- [Packer](https://www.packer.io/) (v1.7.0+)
+- [SOPS](https://github.com/getsops/sops) installed
+- [age](https://github.com/FiloSottile/age) installed
+- Access to Proxmox API
 
-## Setup Instructions
+## 📂 File Structure
 
-1. **Copy and Configure `user-data`**
+The configuration is split into multiple files for better maintainability:
+- `packer.pkr.hcl`: Plugin requirements.
+- `variables.pkr.hcl`: Definitions for all input variables.
+- `locals.pkr.hcl`: Logic for timestamps and template naming.
+- `source.pkr.hcl`: Proxmox VM hardware and ISO configuration.
+- `build.pkr.hcl`: Shell provisioning and cleanup logic.
+- `.sops.yaml`: Configuration for SOPS encryption rules.
+- `secrets.enc.json`: **Encrypted** variable values.
+- `build.sh`: Automation script for decryption and building.
 
-   The file `user-data.tpl` is a template for cloud-init configuration.  
-   Before running the build, rename it to `user-data`:
+## 🔐 Secrets Management (SOPS + age)
 
-   ```sh
-   mv user-data.tpl user-data
-   ```
+We use SOPS to ensure that sensitive data (passwords, tokens) is never stored in plaintext in Git.
 
-   Edit `user-data` as needed for your environment.
+### 1. Setup your age key
+The build script expects your private key to be located at `~/.sops/age.agekey`. If you haven't generated one yet:
+```bash
+mkdir -p ~/.sops
+age-keygen -o ~/.sops/age.agekey
+```
 
-2. **Configure Variables**
+### 2. Configure secrets
+Create a file named `secrets.enc.json` in JSON format. Ensure all keys match the variables defined in `variables.pkr.hcl`:
 
-   Create a secrets file (e.g., `secrets.pkrvars.hcl`) with your sensitive variables:
+```json
+{
+  "PROXMOX_URL": "https://your-proxmox:8006/api2/json",
+  "PROXMOX_USERNAME": "your-user@pam!your-user",
+  "PROXMOX_TOKEN_SECRET": "your-token",
+  "PROXMOX_NODE": "your-pve-node",
+  "VM_ID": "replace-with-any-number-and-remove-quotes",
+  "ISO_FILE": "local:iso/ubuntu-24.04-live-server-amd64.iso",
+  "ISO_CHECKSUM": "your-checksum",
+  "SSH_USERNAME": "your-username",
+  "SSH_PASSWORD": "yourpassword",
+  "SSH_PASSWORD_HASH": "yourhash",
+  "SSH_PUBLIC_KEY": "ssh-rsa ...",
+  "HOSTNAME": "ubuntu-template"
+}
+```
 
-   ```hcl
-   PROXMOX_URL        = "https://your-proxmox:8006/api2/json"
-   PROXMOX_USERNAME   = "root@pam!packer"
-   PROXMOX_TOKEN_SECRET = "your-token"
-   PROXMOX_NODE       = "proxmox-node"
-   VM_ID              = 9000
-   ISO_FILE           = "/var/lib/vz/template/iso/ubuntu-24.04-live-server-amd64.iso"
-   ISO_CHECKSUM       = "sha256:..."
-   SSH_USERNAME       = "ubuntu"
-   SSH_PASSWORD       = "your-password"
-   SSH_PUBLIC_KEY     = "ssh-rsa AAAA..."
-   HOSTNAME           = "ubuntu-template"
-   ```
+### 3. Encrypt the file
+Use the pre-configured `.sops.yaml` rules to encrypt the file:
+```bash
+sops -e -i secrets.enc.json
+```
 
-3. **Run the Build Script**
+### 4. Editing secrets
+To update your passwords or tokens, simply run:
+```bash
+sops secrets.enc.json
+```
+This will decrypt the file in memory, open your default editor, and re-encrypt it automatically upon saving.
 
-   Use the provided `build.sh` script to start the Packer build:
+## 🚀 Running the Build
+The provided `build.sh` script handles the complexity of decrypting secrets to a temporary location and triggering the Packer build.
+```bash
+chmod +x build.sh
+./build.sh
+```
 
-   ```sh
-   ./build.sh
-   ```
+### What the script does:
+1. Decrypts secrets.enc.json into a temporary tmp_secrets.json file.
+2. Sets a shell trap to ensure the temporary plaintext file is deleted even if the build fails or is cancelled.
+3. Initializes Packer and runs the build against the current directory.
 
-   This script will invoke Packer with the appropriate variables.
-
-## Notes
-
-- Sensitive files like `user-data` and `secrets.pkrvars.hcl` are excluded from version control via `.gitignore`.
-- Review and adjust the template and variables for your specific Proxmox
+## 📝 Notes
+- **Git Security**: The `.gitignore` is configured to ignore any `tmp_secrets.json` or `.pkrvars.hcl` files. Only `secrets.enc.json` (the encrypted version) should be committed to the repository.
+- **Cleanup**: The template build process includes a cleanup stage that removes unique identifiers (machine-id) and clears cloud-init logs to ensure the template is "clean" for cloning.
