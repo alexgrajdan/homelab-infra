@@ -63,11 +63,11 @@ resource "proxmox_vm_qemu" "k3s_worker" {
   desc        = "Ubuntu Server 24.04 LTS - Worker #${count.index + 1}"
   agent       = 1
   target_node = local.proxmox_node
-  vmid        = local.vm_id + 3 + count.index # Începem de la VM_ID + 10 pentru a evita conflictele
+  vmid        = local.vm_id + 3 + count.index # this is to avoid VMID conflict with masters
   tags        = "terraform,k3s,worker,test"
   startup     = "down=300"
 
-  # Aceasta linie asigura ordinea: masters prima data, apoi workers
+  # This line ensures the order: masters first, then workers
   depends_on = [proxmox_vm_qemu.k3s_master]
 
   clone      = local.vm_template
