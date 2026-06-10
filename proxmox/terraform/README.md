@@ -34,7 +34,7 @@ Run the following command to create the encrypted file used by Terraform:
 sops --encrypt --age <your-public-key> secrets.json > secrets.enc.json
 ```
 > [!NOTE]  
-> Note: You can then safely delete the plain-text `secrets.json`.
+> You can then safely delete the plain-text `secrets.json`.
 
 ## 🚀 Getting Started
 
