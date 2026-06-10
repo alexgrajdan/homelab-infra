@@ -3,12 +3,12 @@ resource "proxmox_vm_qemu" "k3s_master" {
   name        = format("k3s-master-%02d", count.index + 1)
   desc        = "Ubuntu Server 24.04 LTS - Master #${count.index + 1}"
   agent       = 1
-  target_node = var.PROXMOX_NODE
-  vmid        = var.VM_ID + count.index
+  target_node = local.proxmox_node
+  vmid        = local.vm_id + count.index
   tags        = "terraform,k3s,master,test"
   startup     = "down=300"
 
-  clone      = var.VM_TEMPLATE
+  clone      = local.vm_template
   full_clone = true
 
   onboot = true
@@ -52,9 +52,9 @@ resource "proxmox_vm_qemu" "k3s_master" {
   }
 
   ipconfig0  = "ip=dhcp"
-  ciuser     = var.PROXMOX_CI_USER
-  cipassword = var.PROXMOX_CI_PASSWORD
-  sshkeys    = var.PUBLIC_SSH_KEY
+  ciuser     = local.ci_user
+  cipassword = local.ci_password
+  sshkeys    = local.ssh_key
 }
 
 resource "proxmox_vm_qemu" "k3s_worker" {
@@ -62,15 +62,15 @@ resource "proxmox_vm_qemu" "k3s_worker" {
   name        = format("k3s-worker-%02d", count.index + 1)
   desc        = "Ubuntu Server 24.04 LTS - Worker #${count.index + 1}"
   agent       = 1
-  target_node = var.PROXMOX_NODE
-  vmid        = var.VM_ID + 3 + count.index # Începem de la VM_ID + 10 pentru a evita conflictele
+  target_node = local.proxmox_node
+  vmid        = local.vm_id + 3 + count.index # Începem de la VM_ID + 10 pentru a evita conflictele
   tags        = "terraform,k3s,worker,test"
   startup     = "down=300"
 
   # Aceasta linie asigura ordinea: masters prima data, apoi workers
   depends_on = [proxmox_vm_qemu.k3s_master]
 
-  clone      = var.VM_TEMPLATE
+  clone      = local.vm_template
   full_clone = true
 
   onboot = true
@@ -120,7 +120,7 @@ resource "proxmox_vm_qemu" "k3s_worker" {
   }
 
   ipconfig0  = "ip=dhcp"
-  ciuser     = var.PROXMOX_CI_USER
-  cipassword = var.PROXMOX_CI_PASSWORD
-  sshkeys    = var.PUBLIC_SSH_KEY
+  ciuser     = local.ci_user
+  cipassword = local.ci_password
+  sshkeys    = local.ssh_key
 }

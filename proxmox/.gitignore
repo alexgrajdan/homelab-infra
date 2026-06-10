@@ -16,6 +16,9 @@ crash.log
 *.tfvars
 *.tfvars.json
 credentials.auto.tfvars
+secrets.auto.tfvars
+credentials.auto.json
+secrets.auto.json
 
 # .terraform directory
 .terraform/
