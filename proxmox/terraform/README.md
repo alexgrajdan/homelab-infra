@@ -1,53 +1,68 @@
 # Proxmox Terraform Configuration
 
-This directory contains Terraform configuration files for managing resources on your Proxmox server.
+This directory contains Terraform configuration files for managing resources on a Proxmox VE server using a secure, encrypted secrets workflow.
 
-## Prerequisites
+## 🛠 Prerequisites
 
-- [Terraform](https://www.terraform.io/) installed
-- Access to your Proxmox server and API credentials
-- A VM template created either manually or with Packer
+- **[Terraform](https://www.terraform.io/)** installed.
+- **[SOPS](https://github.com/getsops/sops)** installed for secret encryption.
+- **[age](https://github.com/FiloSottile/age)** installed for key management.
+- Access to your Proxmox server and API credentials.
 
-## Setup Instructions
+## 🔐 Secrets Management
 
-1. **Configure Variables**
+We use **SOPS** with **age** to encrypt sensitive data. Secrets are stored in `secrets.enc.json` and decrypted on-the-fly by Terraform.
 
-   Create a file named `secrets.auto.tfvars` (or use another supported method) with your Proxmox credentials and required variables. Example:
+### 1. Configure Secrets
+Create a temporary `secrets.json` file (this file is git-ignored):
+```json
+{
+  "PROXMOX_URL": "https://<your-proxmox-ip>:8006/api2/json",
+  "PROXMOX_TOKEN_ID": "user@pve!tokenid",
+  "PROXMOX_TOKEN_SECRET": "uuid-secret-here",
+  "PROXMOX_NODE": "<your-proxmox-node>",
+  "VM_TEMPLATE": "<your-vm-template>",
+  "VM_ID": <your-id>,
+  "PROXMOX_CI_USER": "<your-user>",
+  "PROXMOX_CI_PASSWORD": "securepassword",
+  "PUBLIC_SSH_KEY": "ssh-rsa ..."
+}
+```
+### 2. Encrypt with SOPS
+Run the following command to create the encrypted file used by Terraform:
+```bash
+sops --encrypt --age <your-public-key> secrets.json > secrets.enc.json
+```
+> [!NOTE]  
+> Note: You can then safely delete the plain-text `secrets.json`.
 
-   ```hcl
-   proxmox_api_url     = "https://your-proxmox:8006/api2/json"
-   proxmox_api_token   = "root@pam!terraform=your-token"
-   proxmox_node        = "proxmox-node"
-   ```
+## 🚀 Getting Started
 
-2. **Initialize Terraform**
+### 1. Initialize Terraform
+This will download the required providers (Telmate Proxmox and Carlpett SOPS):
+```bash
+terraform init
+```
 
-   Run the following command to initialize the Terraform working directory:
+### 2. Review the Execution Plan
+Terraform will automatically decrypt `secrets.enc.json` using your local age key:
+```bash
+terraform plan
+```
 
-   ```sh
-   terraform init
-   ```
+### 3. Apply the Configuration
 
-3. **Review the Execution Plan**
+```bash
+terraform apply
+```
 
-   Check what Terraform will do before applying changes:
+## 📂 Project Structure
+- `provider.tf`: Defines the Proxmox and SOPS providers.
+- `locals.tf`: Maps encrypted secrets to local variables for cleaner code.
+- `demo-resources.tf`: Standalone demo VM resources.
+- `k3s-resources.tf`: Configuration for the 3-master, 3-worker K3s cluster.
+- `secrets.enc.json`: The encrypted vault containing all credentials.
 
-   ```sh
-   terraform plan
-   ```
-
-4. **Apply the Configuration**
-
-   Apply the configuration to create or update resources:
-
-   ```sh
-   terraform apply
-   ```
-
-   Confirm the action when prompted.
-
-## Notes
-
-- Sensitive files like `secrets.auto.tfvars` are excluded from version control via `.gitignore`.
-- Review and adjust the Terraform configuration files for your specific Proxmox environment.
-- For more information, see the [Terraform Proxmox Provider documentation](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs).
+## ⚠️ Notes
+- **Security**: Decrypted secrets exist in plain text in `terraform.tfstate`. Ensure this file is never committed to version control.
+- **Modifying Secrets**: To edit secrets, use `sops secrets.enc.json`. It will open your default editor and re-encrypt upon saving.

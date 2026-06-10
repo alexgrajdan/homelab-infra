@@ -3,11 +3,11 @@ resource "proxmox_vm_qemu" "example-demo-1" {
     desc = "Ubuntu Server 24.04 LTS"
 
     agent = 1
-    target_node = var.PROXMOX_NODE
-    vmid = var.VM_ID
+    target_node = local.proxmox_node
+    vmid = local.vm_id
     tags = "terraform"    # for multiple tags, use a single string with comma-separated tags, e.g. "tag1,tag2"
 
-    clone = var.VM_TEMPLATE
+    clone = local.vm_template
     full_clone = true
 
     onboot = true
@@ -51,7 +51,7 @@ resource "proxmox_vm_qemu" "example-demo-1" {
     }
 
     ipconfig0 = "ip=dhcp"
-    ciuser = var.PROXMOX_CI_USER
-    cipassword = var.PROXMOX_CI_PASSWORD
-    sshkeys = var.PUBLIC_SSH_KEY
+    ciuser = local.ci_user
+    cipassword = local.ci_password
+    sshkeys = local.ssh_key
 }
