@@ -3,8 +3,8 @@
 #######################################################################################  
 
 build {
-  name = "ubuntu-2404"
-  sources = ["source.proxmox-iso.ubuntu-2404"]
+  name = "ubuntu-2604"
+  sources = ["source.proxmox-iso.ubuntu-2604"]
 
   # Provisioning the VM Template for Cloud-Init Integration in Proxmox
   provisioner "shell" {
@@ -21,7 +21,7 @@ build {
       "sudo rm -f /etc/cloud/cloud.cfg.d/subiquity-disable-cloudinit-networking.cfg",
       "sudo rm -f /etc/netplan/00-installer-config.yaml",
       "sudo sync",
-      "echo 'Ubuntu 24.04 Template by Packer - Creation date: $(date)' | sudo tee /etc/issue"
+      "echo 'Ubuntu 26.04 Template by Packer - Creation date: $(date)' | sudo tee /etc/issue"
     ]
   }
 
