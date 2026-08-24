@@ -1,19 +1,18 @@
 resource "proxmox_vm_qemu" "k3s_master" {
   count       = 3
   name        = format("k3s-master-%02d", count.index + 1)
-  desc        = "Ubuntu Server 24.04 LTS - Master #${count.index + 1}"
+  description = "Ubuntu Server 26.04 LTS - Master #${count.index + 1}"
   agent       = 1
   target_node = local.proxmox_node
   vmid        = local.vm_id + count.index
   tags        = "terraform,k3s,master,test"
-  startup     = "down=300"
 
   clone      = local.vm_template
   full_clone = true
 
-  onboot = true
-  scsihw = "virtio-scsi-single"
-  boot   = "order=scsi0;net0"
+  start_at_node_boot = true
+  scsihw             = "virtio-scsi-single"
+  boot               = "order=scsi0;net0"
 
   cpu {
     cores   = 4
@@ -60,12 +59,11 @@ resource "proxmox_vm_qemu" "k3s_master" {
 resource "proxmox_vm_qemu" "k3s_worker" {
   count       = 3
   name        = format("k3s-worker-%02d", count.index + 1)
-  desc        = "Ubuntu Server 24.04 LTS - Worker #${count.index + 1}"
+  description = "Ubuntu Server 26.04 LTS - Worker #${count.index + 1}"
   agent       = 1
   target_node = local.proxmox_node
   vmid        = local.vm_id + 3 + count.index # this is to avoid VMID conflict with masters
   tags        = "terraform,k3s,worker,test"
-  startup     = "down=300"
 
   # This line ensures the order: masters first, then workers
   depends_on = [proxmox_vm_qemu.k3s_master]
@@ -73,9 +71,9 @@ resource "proxmox_vm_qemu" "k3s_worker" {
   clone      = local.vm_template
   full_clone = true
 
-  onboot = true
-  scsihw = "virtio-scsi-single"
-  boot   = "order=scsi0;net0"
+  start_at_node_boot = true
+  scsihw             = "virtio-scsi-single"
+  boot               = "order=scsi0;net0"
 
   cpu {
     cores   = 4

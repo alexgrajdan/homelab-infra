@@ -1,14 +1,14 @@
 terraform {
-    required_version = ">= 0.13.0"
+  required_version = ">= 0.13.0"
 
   required_providers {
     proxmox = {
-      source = "Telmate/proxmox"
-      version = "3.0.2-rc01"
+      source  = "Telmate/proxmox"
+      version = "3.0.2-rc09"
     }
     sops = {
-      source = "carlpett/sops"
-      version = "~> 1.0.0" 
+      source  = "carlpett/sops"
+      version = "~> 1.0.0"
     }
   }
 }
