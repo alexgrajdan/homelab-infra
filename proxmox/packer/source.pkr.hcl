@@ -1,4 +1,4 @@
-source "proxmox-iso" "ubuntu-2404" {
+source "proxmox-iso" "ubuntu-2604" {
   proxmox_url               = var.PROXMOX_URL
   username                  = var.PROXMOX_USERNAME
   token                     = var.PROXMOX_TOKEN_SECRET
@@ -6,8 +6,8 @@ source "proxmox-iso" "ubuntu-2404" {
   node                      = var.PROXMOX_NODE
 
   vm_id                     = var.VM_ID
-  vm_name                   = "ubuntu-2404-template"
-  template_description      = "Ubuntu 24.04 Server Template - built with Packer on ${local.buildtime}"
+  vm_name                   = "ubuntu-2604-template"
+  template_description      = "Ubuntu 26.04 Server Template - built with Packer on ${local.buildtime}"
   tags                      = "packer;template"
 
   boot_iso {

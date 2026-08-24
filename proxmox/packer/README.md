@@ -1,4 +1,4 @@
-# Proxmox Ubuntu 24.04 Packer Templates
+# Proxmox Ubuntu 26.04 Packer Templates
 
 This repository contains modular Packer templates for building Ubuntu 24.04 VM templates on Proxmox, featuring **SOPS + age** for secure secrets management.
 
@@ -42,7 +42,7 @@ Create a file named `secrets.enc.json` in JSON format. Ensure all keys match the
   "PROXMOX_TOKEN_SECRET": "your-token",
   "PROXMOX_NODE": "your-pve-node",
   "VM_ID": "replace-with-any-number-and-remove-quotes",
-  "ISO_FILE": "local:iso/ubuntu-24.04-live-server-amd64.iso",
+  "ISO_FILE": "local:iso/ubuntu-26.04-live-server-amd64.iso",
   "ISO_CHECKSUM": "your-checksum",
   "SSH_USERNAME": "your-username",
   "SSH_PASSWORD": "yourpassword",
