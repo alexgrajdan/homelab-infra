@@ -45,11 +45,6 @@ resource "proxmox_vm_qemu" "linux-training" {
     }
   }
 
-  serial {
-    id   = 0
-    type = "socket"
-  }
-
   ipconfig0  = "ip=dhcp"
   ciuser     = local.ci_user
   cipassword = local.ci_password
