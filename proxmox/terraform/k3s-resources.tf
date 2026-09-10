@@ -45,11 +45,6 @@ resource "proxmox_vm_qemu" "k3s_master" {
     }
   }
 
-  serial {
-    id   = 0
-    type = "socket"
-  }
-
   ipconfig0  = "ip=dhcp"
   ciuser     = local.ci_user
   cipassword = local.ci_password
@@ -110,11 +105,6 @@ resource "proxmox_vm_qemu" "k3s_worker" {
         }
       }
     }
-  }
-
-  serial {
-    id   = 0
-    type = "socket"
   }
 
   ipconfig0  = "ip=dhcp"
